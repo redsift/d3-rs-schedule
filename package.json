@@ -1,12 +1,12 @@
 {
   "name": "@redsift/d3-rs-schedule",
   "version": "0.0.2",
-  "description": "Generates pie charts using D3v4.",
+  "description": "Generates a calendar like schedule using D3v4.",
   "keywords": [
-    "pie",
+    "schedule",
     "redsift",
     "d3",
-    "chart"
+    "calendar"
   ],
   "homepage": "https://github.com/redsift/d3-rs-schedule",
   "license": "MIT",

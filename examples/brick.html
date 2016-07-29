@@ -33,18 +33,18 @@
     
     let timer = setInterval(function() {
       i++;
-      let node = d3.select('#elm').datum([{ start:1469723575941, 
-                                end:1469723575941 + (min10 * 4), 
-                                summary: 'First text', 
-                                status: 'some' },
-                                { start:1469723575941, 
-                                end:1469723575941 + (min10 * 4), 
-                                summary: 'Second text', 
-                                status: 'else' },
-                                { start: 1469726870991,
-                                  end:1469726870991 + (min10 * i),
-                                  summary: 'Some other long text that will not fit',
-                                  status: 'proposed'
+      let node = d3.select('#elm').datum([{ s:1469723575941, 
+                                e:1469723575941 + (min10 * 4), 
+                                t: 'First text', 
+                                u: 'some' },
+                                { s:1469723575941, 
+                                e:1469723575941 + (min10 * 4), 
+                                t: 'Second text', 
+                                u: 'else' },
+                                { s: 1469726870991,
+                                  e:1469726870991 + (min10 * i),
+                                  t: 'Some other long text that will not fit',
+                                  u: 'highlight'
                                 }
                                 ]);
         if (i > 1) {
@@ -56,18 +56,18 @@
       }                             
     }, 1000);
     
-    d3.select('#elm').datum([{ start:1469723575941, 
-                               end:1469723575941 + (min10 * 4), 
-                               summary: 'First text', 
-                               status: 'some' },
-                              { start:1469723575941 + (min10 * 1), 
-                               end:1469723575941 + (min10 * 5), 
-                               summary: 'Second text', 
-                               status: 'else' },
-                              { start: 1469726870991,
-                                end:1469726870991 + (min10 * 4),
-                                summary: 'Some other long text that will not fit and this should now elllllllls',
-                                status: 'proposed'
+    d3.select('#elm').datum([{ s:1469723575941, 
+                               e:1469723575941 + (min10 * 4), 
+                               t: 'First text', 
+                               u: 'some' },
+                              { s:1469723575941 + (min10 * 1), 
+                               e:1469723575941 + (min10 * 5), 
+                               t: 'Second text', 
+                               u: 'else' },
+                              { s: 1469726870991,
+                                e:1469726870991 + (min10 * 4),
+                                t: 'Some other long text that will not fit and this should now elllllllls',
+                                u: 'highlight'
                               }
                               ])
                               .call(d3_rs_schedule.html('basic-dark').indexFormat('%H:%M').theme('dark'));   

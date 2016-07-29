@@ -26,6 +26,11 @@ const DEFAULT_ASPECT = 160 / 420;
 const DEFAULT_MARGIN = 26;  // white space
 const DEFAULT_INSET = 24;   // scale space
 
+const SYM_START = 's',
+      SYM_END = 'e',
+      SYM_TEXT = 't',
+      SYM_STATUS = 'u';
+
 function _isMinor(d) {
   return (d.getMinutes() !== 0);
 }
@@ -57,6 +62,8 @@ export default function schedule(id) {
       eventHeight = 38,
       eventPadding = 2,
       textInset = null,
+      minIndex = undefined,
+      maxIndex = undefined,
       indexFormat = undefined;
 
    
@@ -81,7 +88,7 @@ export default function schedule(id) {
     if (_fill === undefined) {
       let rndLight = random(presentation10.lighter);
       let rndStd = random(presentation10.standard);
-      _fill = d => d.status === 'proposed' ? rndStd(d.status) : rndLight(d.status);
+      _fill = d => d[SYM_STATUS] === 'highlight' ? rndStd(d[SYM_STATUS]) : rndLight(d[SYM_STATUS]);
     } else if (typeof _fill === 'function') {
        // noop
     } else if (Array.isArray(fill)) {
@@ -102,22 +109,29 @@ export default function schedule(id) {
     selection.each(function(provided) {
         provided = provided || [];
         
-        let mn = min(provided, v => v.start) || 0;
-        let mx = max(provided, v => v.end) || 10000000;
+        let mn = minIndex;
+        let mx = maxIndex;
+
+        if (mn === undefined) {
+          mn = min(provided, v => v[SYM_START]) || 0;
+        }
+        
+        if (mx === undefined) {        
+          mx = max(provided, v => v[SYM_END]) || 10000000;
+        }
+        
         let extent = [ mn, mx ];
 
-        // filter out empty events (e.g. range setting values)
-        let data = provided.filter((d) => d.status != null);
         
         // create overlap indexes
-        data = data.map(function(d, i) {
+        let data = provided.map(function(d, i) {
             let index = 0;
-            for (let pos = 0; pos < data.length; pos++) {
+            for (let pos = 0; pos < provided.length; pos++) {
                 if (pos >= i) break;
-                let t = data[pos];
+                let t = provided[pos];
                 
-                let overlap = (t.start >= d.start && t.start < d.end) || 
-                        (t.end > d.start && t.end <= d.end);
+                let overlap = (t[SYM_START] >= d[SYM_START] && t[SYM_START] < d[SYM_END]) || 
+                        (t[SYM_END] > d[SYM_START] && t[SYM_END] <= d[SYM_END]);
                 if (overlap) 
                 {
                 index = t.index + 1;
@@ -226,22 +240,22 @@ export default function schedule(id) {
           event = event.transition(context);
         }
             
-        event.attr('transform', d => `translate(${x(d.start)},${d.index * (eventHeight + eventPadding)})`);
+        event.attr('transform', d => `translate(${x(d[SYM_START])},${d.index * (eventHeight + eventPadding)})`);
 
         event.select('rect')
             .attr('fill', _fill)
-            .attr('width', d => x(d.end) - x(d.start))
+            .attr('width', d => x(d[SYM_END]) - x(d[SYM_START]))
             .attr('height', eventHeight);
 
 
-        let wrap = tspanWrap().text(d => d.summary);
+        let wrap = tspanWrap().text(d => d[SYM_TEXT]);
 
         event.select('text')
             .attr('dominant-baseline', 'text-before-edge')
             .attr('fill', (d, i) => contrasts.white(_fill(d, i)) ? display.dark.text : display.light.text)
             .attr('x', _text.left)
             .attr('y', _text.top)
-            .attr('width', (d) => x(d.end) - x(d.start) - _text.left - _text.right)
+            .attr('width', (d) => x(d[SYM_END]) - x(d[SYM_START]) - _text.left - _text.right)
             .attr('height', eventHeight - _text.top - _text.bottom)
             .call(wrap);
                                   
@@ -362,7 +376,14 @@ export default function schedule(id) {
   _impl.indexFormat = function(value) {
     return arguments.length ? (indexFormat = value, _impl) : indexFormat;
   };       
-      
+
+  _impl.minIndex = function(value) {
+    return arguments.length ? (minIndex = value, _impl) : minIndex;
+  };             
+
+  _impl.maxIndex = function(value) {
+    return arguments.length ? (maxIndex = value, _impl) : maxIndex;
+  };  
       
   return _impl;
 }

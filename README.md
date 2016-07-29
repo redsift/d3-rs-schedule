@@ -46,6 +46,12 @@
 
 ### Datum
 
+[{ s: 1469723575941, e: 1469726870991, t: "Text to display", u: "highlight" } ...]
+
+`s` start timestamp for the event (epoch UTC ms)
+`e` start timestamp for the event (epoch UTC ms)
+`t` text to display
+`u` status text for the event. By default, the only status that is known is 'highlight' and highlights the entry. The value of this string is also used to map against the color of the background used.
 
 
 ### Parameters
