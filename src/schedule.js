@@ -63,7 +63,8 @@ export default function schedule(id) {
       textInset = null,
       minIndex = undefined,
       maxIndex = undefined,
-      indexFormat = undefined;
+      indexFormat = undefined,
+      wrapping = true;
 
    
   function _impl(context) {
@@ -246,18 +247,20 @@ export default function schedule(id) {
             .attr('width', d => x(d[SYM_END]) - x(d[SYM_START]))
             .attr('height', eventHeight);
 
-
-        let wrap = tspanWrap().text(d => d[SYM_TEXT]);
-
-        event.select('text')
+        let txt = event.select('text')
             .attr('dominant-baseline', 'text-before-edge')
             .attr('fill', (d, i) => contrasts.white(_fill(d, i)) ? display.dark.text : display.light.text)
             .attr('x', _text.left)
             .attr('y', _text.top)
             .attr('width', (d) => x(d[SYM_END]) - x(d[SYM_START]) - _text.left - _text.right)
-            .attr('height', eventHeight - _text.top - _text.bottom)
-            .call(wrap);
-                                  
+            .attr('height', eventHeight - _text.top - _text.bottom);
+
+        if (wrapping === true) {
+          let wrap = tspanWrap().text(d => d[SYM_TEXT]);            
+          txt.call(wrap);
+        } else {           
+          txt.text(d => d[SYM_TEXT]);
+        }                  
     });
   }
 
@@ -340,6 +343,10 @@ export default function schedule(id) {
   
   _impl.nice = function(value) {
     return arguments.length ? (nice = value, _impl) : nice;
+  };   
+
+  _impl.wrapping = function(value) {
+    return arguments.length ? (wrapping = value, _impl) : wrapping;
   };   
 
   _impl.fill = function(value) {
