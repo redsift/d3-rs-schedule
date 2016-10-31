@@ -17,8 +17,7 @@ import {
   presentation10,
   display,
   fonts,
-  widths,
-  dashes
+  widths
 } from '@redsift/d3-rs-theme';
 
 const DEFAULT_SIZE = 420;
@@ -331,28 +330,6 @@ export default function schedule(id) {
     return arguments.length ? (eventPadding = value, _impl) : eventPadding;
   };   
   
-  _impl.textPadding = function(value) {
-    if (!arguments.length) return {
-        top: textTop,
-        right: textRight,
-        bottom: textBottom,
-        left: textLeft
-    };
-    if (value.top !== undefined) {
-      textTop = value.top;
-      textRight = value.right;
-      textBottom = value.bottom;
-      textLeft = value.left; 
-    } else {
-      if (typeof value === 'string') value = parseInt(value);
-      textTop = value;
-      textRight = value;
-      textBottom = value;
-      textLeft = value;
-    } 
-    return _impl;
-  };
-
   _impl.language = function(value) {
     return arguments.length ? (language = value, _impl) : language;
   };    
