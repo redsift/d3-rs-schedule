@@ -72,7 +72,7 @@
                                 u: 'proposed'
                               }
                               ])
-                              .call(d3_rs_schedule.html('basic-light').indexFormat('%H:%M'));   
+                              .call(d3_rs_schedule.html('basic-light'));   
 
 
     d3.select('#elm').datum([{ s:1469723575941, 
@@ -87,7 +87,7 @@
                                 u: 'proposed'
                               }
                               ])
-                              .call(d3_rs_schedule.html('basic-dark').indexFormat('%H:%M').theme('dark'));   
+                              .call(d3_rs_schedule.html('basic-dark').indexFormat('%Hh').theme('dark'));   
 
     d3.select('#elm').datum([{ s:1469723575941, 
                                e:1469723575941 + (min10 * 4), 
@@ -102,7 +102,7 @@
                                 u: 'proposed'
                               }
                               ])
-                              .call(d3_rs_schedule.html('timezone').timezone('America/Montreal'));   
+                              .call(d3_rs_schedule.html('timezone').timezone('Asia/Colombo').prefixDurationFormat('%H:%M'));   
 
     </script>
   </body>

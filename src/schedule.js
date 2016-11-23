@@ -3,11 +3,13 @@ import { select } from 'd3-selection';
 import { max, min } from 'd3-array';
 import { scaleTime } from 'd3-scale';
 import { axisLeft } from 'd3-axis';
-import { timeFormat, timeFormatDefaultLocale } from 'd3-time-format';
+
 import { 
   utcMinute,
   utcHour
 } from 'd3-time';
+
+import tz from 'timezone/loaded';
 
 import { html as svg } from '@redsift/d3-rs-svg';
 import { time } from '@redsift/d3-rs-intl';
@@ -45,7 +47,7 @@ const SYM_START = 's',
       SYM_STATUS = 'u';
 
 function _isMinor(d) {
-  return (d.getMinutes() !== 0);
+  return (d.getMinutes() !== 0); // use of UTC here mostly works but not correct for 30min and 45 min timezones
 }
 
 function coerceMargin(m, def) {
@@ -80,7 +82,8 @@ export default function schedule(id) {
       maxIndex = undefined,
       indexFormat = undefined,
       tickInterval = undefined,
-      timezone = undefined,
+      prefixDurationFormat = null,
+      timezone = 'Etc/UTC',
       wrapping = true;
 
   let pattern = diagonals(id ? `pattern-${id}` : 'pattern-schedule', patterns.diagonal2);
@@ -97,8 +100,7 @@ export default function schedule(id) {
     let selection = context.selection ? context.selection() : context,
         transition = (context.selection !== undefined);    
 
-    let localeTime = time(language).d3;
-    timeFormatDefaultLocale(localeTime);
+    let localeTime = time(language).iso639.replace(/-/g, '_');
     
     let _background = background;
     if (_background === undefined) {
@@ -133,13 +135,25 @@ export default function schedule(id) {
 
     let _indexFormat = indexFormat;
     if (_indexFormat === undefined) {
-      _indexFormat = timeFormat('%Hh');
+      _indexFormat = utc => tz(utc, '%H:%M', localeTime, timezone);
     } else if (typeof _indexFormat === 'function') {
       // noop
     } else if (typeof _indexFormat === 'string') {
-      _indexFormat = timeFormat(indexFormat);
+      _indexFormat = utc => tz(utc, indexFormat, localeTime, timezone);
     }
-                  
+
+    const toText = d => {
+      let t = d[SYM_TEXT];
+      if (t && prefixDurationFormat) {
+        if (d[SYM_START] && d[SYM_END]) {
+          let start = tz(d[SYM_START], prefixDurationFormat, localeTime, timezone);
+          let end = tz(d[SYM_END], prefixDurationFormat, localeTime, timezone);
+          return start + '-' + end + ' ' + t;
+        }
+      }
+      return t;
+    };
+
     selection.each(function(provided) {
         provided = provided || [];
         
@@ -235,9 +249,9 @@ export default function schedule(id) {
         if (_tickInterval == null) {
           let hours = (extent[1] - extent[0]) / (1000 * 60 * 60);
           if (hours < DEFAULT_TICKS_HOURS) {
-            _tickInterval = [ utcMinute, 30 ];
+            _tickInterval = [ utcMinute, 30 ]; // use of UTC here mostly works but not correct for 30min and 45 min timezones
           } else {
-            _tickInterval = [ utcHour, Math.ceil(hours / DEFAULT_TICKS_HOURS)];
+            _tickInterval = [ utcHour, Math.ceil(hours / DEFAULT_TICKS_HOURS)]; // use of UTC here mostly works but not correct for 30min and 45 min timezones
           }
         }
 
@@ -322,10 +336,10 @@ export default function schedule(id) {
 
         if (wrapping === true) {
           //TODO; Spacing hardcode for bricks
-          let wrap = tspanWrap().spacing(7).text(d => d[SYM_TEXT]);            
+          let wrap = tspanWrap().spacing(7).text(d => toText(d));            
           txt.call(wrap);
         } else {           
-          txt.text(d => d[SYM_TEXT]);
+          txt.text(d => toText(d));
         }                  
     });
   }
@@ -444,6 +458,11 @@ export default function schedule(id) {
   _impl.timezone = function(value) {
     return arguments.length ? (timezone = value, _impl) : timezone;
   };   
+
+  _impl.prefixDurationFormat = function(value) {
+    return arguments.length ? (prefixDurationFormat = value, _impl) : prefixDurationFormat;
+  }; 
+  
       
   return _impl;
 }
