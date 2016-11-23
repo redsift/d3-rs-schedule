@@ -57,22 +57,22 @@
 
     d3.select('#elm').datum([{ s:1469723575941, 
                                e:1469723575941 + (min10 * 4), 
-                               t: '11am-11:30am Meeting with Jim Bailey' },
+                               t: 'Meeting with Jim Bailey' },
                               { s:1469723575941 + (min10 * 1), 
                                e:1469723575941 + (min10 * 5), 
-                               t: '11am-11:30am Meeting with John Bailey',
+                               t: 'Meeting with John Bailey',
                                u: 'provisional'
                               },
                               { s:1469723575941 + (min10 * 1), 
                                e:1469723575941 + (min10 * 5), 
-                               t: '11am-11:30am Meeting with John Bailey' },
+                               t: 'Meeting with John Bailey' },
                               { s: 1469726870991,
                                 e:1469726870991 + (min10 * 4),
-                                t: '10am-11am Briefing with the team at Costa',
+                                t: 'Briefing with the team at Costa',
                                 u: 'proposed'
                               }
                               ])
-                              .call(d3_rs_schedule.html('basic-light'));   
+                              .call(d3_rs_schedule.html('basic-light').prefixDurationFormat('%H:%M'));   
 
 
     d3.select('#elm').datum([{ s:1469723575941, 

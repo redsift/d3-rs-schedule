@@ -12,12 +12,12 @@
 
 ### Empty
 
-![Empty](https://bricks.redsift.cloud/reusable/d3-rs-schedule.svg])
+![Empty](https://bricks.redsift.cloud/reusable/d3-rs-schedule.svg?])
 
 
 ### Single Entry
 
-![Single Entry](https://bricks.redsift.cloud/reusable/d3-rs-schedule.svg?_datum=[{s:1469723575941, e:1469726870991,t: "Text to display",u:"proposed"}])
+![Single Entry](https://bricks.redsift.cloud/reusable/d3-rs-schedule.svg?_datum=[{%22s%22:1469723575941,%22e%22:1469726870991,%22t%22:%22Initial%20Event%22},{%22s%22:1469723575941,%22e%22:1469729870991,%22t%22:%22Event%20Two%22,%22u%22:%22proposed%22}]&prefixDurationFormat=%25H:%25M)
 
 ## Usage
 
@@ -58,7 +58,7 @@ Property|Description|Transition|Preview
 `width`, `height`, `size`, `scale`|*Integer* SVG container sizes|Y
 `style`|*String* Custom CSS to inject into chart|N
 `indexFormat`|*String, Function* Change the time presentation on the axis. If string, utilises [d3-time-format](https://github.com/d3/d3-time-format#locale_format). If a function, must be a comptabile formatter. Default `%Hh`
-`language`|*String* Change the language of affecting time formats.
+`language`|*String* Change the language, affects time formats. Typically auto detected from the browser.
 `timezone`|*String* Set the timezone for display e.g. `Asia/Colombo`
 `prefixDurationFormat`|*String* Prefix the event text with start and end time
 `tickInterval`|*Array* Interval of the ticks, typically an [interval and a specifier](https://github.com/d3/d3-axis#axis_ticks) e.g. `d3.timeMinute.every(15)`
