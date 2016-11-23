@@ -1,10 +1,6 @@
 {
   "name": "@redsift/d3-rs-schedule",
-<<<<<<< HEAD
-  "version": "0.0.4",
-=======
   "version": "0.2.0",
->>>>>>> master
   "description": "Generates a calendar like schedule using D3v4.",
   "keywords": [
     "schedule",
