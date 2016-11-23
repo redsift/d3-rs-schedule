@@ -2,28 +2,44 @@
 import { select } from 'd3-selection';
 import { max, min } from 'd3-array';
 import { scaleTime } from 'd3-scale';
-import { axisBottom } from 'd3-axis';
-import { timeFormat, timeFormatDefaultLocale } from 'd3-time-format';
+import { axisLeft } from 'd3-axis';
+
 import { 
-  utcMinute
+  utcMinute,
+  utcHour
 } from 'd3-time';
+
+import tz from 'timezone/loaded';
 
 import { html as svg } from '@redsift/d3-rs-svg';
 import { time } from '@redsift/d3-rs-intl';
 import { text as tspanWrap } from '@redsift/d3-rs-tspan-wrap';
 import { 
-  random,
-  contrasts,
-  presentation10,
   display,
   fonts,
-  widths
+  widths,
+  diagonals,
+  patterns,
+  contrasts
 } from '@redsift/d3-rs-theme';
 
 const DEFAULT_SIZE = 420;
-const DEFAULT_ASPECT = 160 / 420;
+const DEFAULT_ASPECT = 1150 / 1000;
 const DEFAULT_MARGIN = 26;  // white space
 const DEFAULT_INSET = 24;   // scale space
+const DEFAULT_TICKS_HOURS = 7; // show up to 7 hours on the axis
+const STROKE_PX = 3;
+
+const PAL_PAJAMA2 = [
+  '#D3F9E9E2',
+  '#AFEBF0E2'
+];
+
+const PAL_TEXT = '#5C5C5C';
+const PAL_STRIPE = '#eee';  
+
+const DEFAULT_TEXT_INSET = 7;
+const DEFAULT_EVENT_PADDING = -17;
 
 const SYM_START = 's',
       SYM_END = 'e',
@@ -31,7 +47,7 @@ const SYM_START = 's',
       SYM_STATUS = 'u';
 
 function _isMinor(d) {
-  return (d.getMinutes() !== 0);
+  return (d.getMinutes() !== 0); // use of UTC here mostly works but not correct for 30min and 45 min timezones
 }
 
 function coerceMargin(m, def) {
@@ -58,21 +74,33 @@ export default function schedule(id) {
       scale = 1.0,   
       nice = true, 
       fill = undefined,  
-      eventHeight = 38,
-      eventPadding = 2,
+      stroke = undefined,
+      eventWidth = undefined,
+      eventPadding = DEFAULT_EVENT_PADDING,
       textInset = null,
       minIndex = undefined,
       maxIndex = undefined,
       indexFormat = undefined,
+      tickInterval = undefined,
+      prefixDurationFormat = null,
+      timezone = 'Etc/UTC',
       wrapping = true;
 
-   
+  let pattern = diagonals(id ? `pattern-${id}` : 'pattern-schedule', patterns.diagonal2);
+  pattern.foreground(PAL_PAJAMA2[1]);
+  pattern.background(PAL_STRIPE);
+
+  const PAL_STATUS = {
+    proposed: '#1A74C1',
+    conflict: '#E11010',
+    provisional: [ PAL_STRIPE, pattern.url() ]
+  };
+
   function _impl(context) {
     let selection = context.selection ? context.selection() : context,
         transition = (context.selection !== undefined);    
-    
-    let localeTime = time(language).d3;
-    timeFormatDefaultLocale(localeTime);
+
+    let localeTime = time(language).iso639.replace(/-/g, '_');
     
     let _background = background;
     if (_background === undefined) {
@@ -81,14 +109,17 @@ export default function schedule(id) {
     
     let _height = height || Math.round(width * DEFAULT_ASPECT);
 
-    let _inset = coerceMargin(inset, { top: 0, bottom: DEFAULT_INSET, left: 0, right: 0 });
-    let _text = coerceMargin(textInset, { top: 2, bottom: 2, left: 4, right: 4 });
+    let _inset = coerceMargin(inset, { top: 0, bottom: 0, left: DEFAULT_INSET, right: 0 });
+    let _text = coerceMargin(textInset, { 
+                                    top: DEFAULT_TEXT_INSET, 
+                                    bottom: DEFAULT_TEXT_INSET, 
+                                    left: DEFAULT_TEXT_INSET, 
+                                    right: Math.max(-eventPadding, DEFAULT_TEXT_INSET) 
+                                  });
         
     let _fill = fill;
     if (_fill === undefined) {
-      let rndLight = random(presentation10.lighter);
-      let rndStd = random(presentation10.standard);
-      _fill = d => d[SYM_STATUS] === 'highlight' ? rndStd(d[SYM_STATUS]) : rndLight(d[SYM_STATUS]);
+      _fill = (d, i) => d[SYM_STATUS] ? (PAL_STATUS[d[SYM_STATUS]]) : PAL_PAJAMA2[i % PAL_PAJAMA2.length];
     } else if (typeof _fill === 'function') {
        // noop
     } else if (Array.isArray(fill)) {
@@ -97,15 +128,32 @@ export default function schedule(id) {
       _fill = () => fill;
     }
     
+    let _stroke = stroke;
+    if (_stroke === undefined) {
+      _stroke = d => (d.index > 0) ? display.dark.text : null;
+    }
+
     let _indexFormat = indexFormat;
     if (_indexFormat === undefined) {
-      _indexFormat = timeFormat('%Hh');
+      _indexFormat = utc => tz(utc, '%H:%M', localeTime, timezone);
     } else if (typeof _indexFormat === 'function') {
       // noop
     } else if (typeof _indexFormat === 'string') {
-      _indexFormat = timeFormat(indexFormat);
+      _indexFormat = utc => tz(utc, indexFormat, localeTime, timezone);
     }
-                  
+
+    const toText = d => {
+      let t = d[SYM_TEXT];
+      if (t && prefixDurationFormat) {
+        if (d[SYM_START] && d[SYM_END]) {
+          let start = tz(d[SYM_START], prefixDurationFormat, localeTime, timezone);
+          let end = tz(d[SYM_END], prefixDurationFormat, localeTime, timezone);
+          return start + '-' + end + ' ' + t;
+        }
+      }
+      return t;
+    };
+
     selection.each(function(provided) {
         provided = provided || [];
         
@@ -124,6 +172,7 @@ export default function schedule(id) {
 
         
         // create overlap indexes
+        let maxOverlap = 0;
         let data = provided.map(function(d, i) {
             let index = 0;
             for (let pos = 0; pos < provided.length; pos++) {
@@ -134,13 +183,14 @@ export default function schedule(id) {
                         (t[SYM_END] > d[SYM_START] && t[SYM_END] <= d[SYM_END]);
                 if (overlap) 
                 {
-                index = t.index + 1;
+                  index = t.index + 1;
+                  if (index > maxOverlap) maxOverlap = index;
                 }
             }
             d.index = index;
             return d;
         });
-        
+
         let node = select(this);  
         
         // SVG element
@@ -170,7 +220,7 @@ export default function schedule(id) {
           node.call(svgChart);
         }
         
-        let svgNode = node.select(svgChart.self()).select(svgChart.child());
+        let svgNode = node.select(svgChart.self()).call(pattern).select(svgChart.child());
 
         // Create required elements
         let g = svgNode.select(_impl.self())
@@ -181,20 +231,36 @@ export default function schedule(id) {
           g.append('g').attr('class', 'events');
         }
 
-        let x = scaleTime()
-            .domain(extent)
-            .rangeRound([_inset.left, w - _inset.right]);
         
-        if (nice === true) {    
-            x = x.nice();
+        let _eventWidth = eventWidth;
+        if (_eventWidth == null) {
+           _eventWidth = Math.floor((w - _inset.left - _inset.right) / (maxOverlap + 1));
         }
 
-        let xAxis = axisBottom()
-            .scale(x)
+        let y = scaleTime()
+            .domain(extent)
+            .rangeRound([_inset.top, h - _inset.bottom]);
+        
+        if (nice === true) {    
+            y = y.nice();
+        }
+
+        let _tickInterval = tickInterval;
+        if (_tickInterval == null) {
+          let hours = (extent[1] - extent[0]) / (1000 * 60 * 60);
+          if (hours < DEFAULT_TICKS_HOURS) {
+            _tickInterval = [ utcMinute, 30 ]; // use of UTC here mostly works but not correct for 30min and 45 min timezones
+          } else {
+            _tickInterval = [ utcHour, Math.ceil(hours / DEFAULT_TICKS_HOURS)]; // use of UTC here mostly works but not correct for 30min and 45 min timezones
+          }
+        }
+
+        let yAxis = axisLeft()
+            .scale(y)
             .tickFormat(_indexFormat)
-            .ticks(utcMinute, 30)
+            .tickArguments(_tickInterval)
             .tickPadding(4)
-            .tickSize(-h, 0);
+            .tickSize(-w + _inset.left + _inset.right);
 
                     
         let grid = g.select('g.axis');
@@ -203,8 +269,8 @@ export default function schedule(id) {
           grid = grid.transition(context);
         }
         
-        grid.attr('transform', 'translate(0, ' + h + ')')
-            .call(xAxis);
+        grid.attr('transform', `translate(${_inset.left}, 0)`)
+            .call(yAxis);
        
         grid
             .selectAll('text')
@@ -218,10 +284,11 @@ export default function schedule(id) {
         grid
             .selectAll('line')
             .attr('stroke', d => _isMinor(d) ? display[theme].grid : display[theme].axis)
+            .attr('stroke-opacity', d => _isMinor(d) ? 0.5 : 1.0) 
             .attr('stroke-width', d => _isMinor(d) ? widths.grid : widths.axis); 
          
         // Event rects
-        let events = g.select('g.events');
+        let events = g.select('g.events').attr('transform', `translate(${_inset.left+widths.axis}, 0)`);
 
         let event = events.selectAll('g.event').data(data);
         
@@ -240,26 +307,39 @@ export default function schedule(id) {
           event = event.transition(context);
         }
             
-        event.attr('transform', d => `translate(${x(d[SYM_START])},${d.index * (eventHeight + eventPadding)})`);
+        event.attr('transform', d => `translate(${d.index * (_eventWidth + eventPadding)}, ${y(d[SYM_START])})`);
 
         event.select('rect')
-            .attr('fill', _fill)
-            .attr('width', d => x(d[SYM_END]) - x(d[SYM_START]))
-            .attr('height', eventHeight);
+            .attr('fill', (d, i) => {
+              let f = _fill(d, i);
+              if (Array.isArray(f)) return f[f.length - 1];
+              return f;
+            })
+            .attr('stroke', _stroke)
+            .attr('width', _eventWidth)
+            .attr('height', d => y(d[SYM_END]) - y(d[SYM_START]));
 
         let txt = event.select('text')
             .attr('dominant-baseline', 'text-before-edge')
-            .attr('fill', (d, i) => contrasts.white(_fill(d, i)) ? display.dark.text : display.light.text)
+            .attr('fill', (d, i) => {
+              if (d[SYM_STATUS]) {
+                let f = _fill(d, i);
+                if (Array.isArray(f)) f = f[0];
+                return contrasts.white(f) ? display.dark.text : display.light.text;
+              } 
+              return PAL_TEXT;
+            })
             .attr('x', _text.left)
             .attr('y', _text.top)
-            .attr('width', (d) => x(d[SYM_END]) - x(d[SYM_START]) - _text.left - _text.right)
-            .attr('height', eventHeight - _text.top - _text.bottom);
+            .attr('width', _eventWidth - _text.left - _text.right)
+            .attr('height', d => Math.max(y(d[SYM_END]) - y(d[SYM_START]) - _text.top - _text.bottom - 14, 12) /*fonts.fixed.sizeForWidth(w) worst case */);
 
         if (wrapping === true) {
-          let wrap = tspanWrap().text(d => d[SYM_TEXT]);            
+          //TODO; Spacing hardcode for bricks
+          let wrap = tspanWrap().spacing(7).text(d => toText(d));            
           txt.call(wrap);
         } else {           
-          txt.text(d => d[SYM_TEXT]);
+          txt.text(d => toText(d));
         }                  
     });
   }
@@ -272,20 +352,22 @@ export default function schedule(id) {
 
   _impl.defaultStyle = (_theme, _width) => `
                   ${fonts.fixed.cssImport}  
-                  ${fonts.variable.cssImport}  
                   ${_impl.self()} line,
                   ${_impl.self()} path { 
                                         shape-rendering: crispEdges; 
                                       }
                   ${_impl.self()} .events text { 
-                                        font-family: ${fonts.variable.family};
-                                        font-size: ${fonts.variable.sizeForWidth(_width)};   
-                                        font-weight: ${fonts.variable.weightMonochrome};               
+                                        font-family: ${fonts.fixed.family};
+                                        font-size: ${fonts.fixed.sizeForWidth(_width)};   
+                                        font-weight: ${fonts.fixed.weightMonochrome};               
                                       }                                              
                   ${_impl.self()} .axis text { 
                                         font-family: ${fonts.fixed.family};
                                         font-size: ${fonts.fixed.sizeForWidth(_width)};   
                                         font-weight: ${fonts.fixed.weightMonochrome};               
+                                      }
+                  ${_impl.self()} g.event rect {
+                                        stroke-width: ${STROKE_PX}px;
                                       }
                 `;
     
@@ -325,8 +407,8 @@ export default function schedule(id) {
     return arguments.length ? (style = value, _impl) : style;
   }; 
 
-  _impl.eventHeight = function(value) {
-    return arguments.length ? (eventHeight = value, _impl) : eventHeight;
+  _impl.eventWidth = function(value) {
+    return arguments.length ? (eventWidth = value, _impl) : eventWidth;
   }; 
   
   _impl.eventPadding = function(value) {
@@ -368,6 +450,19 @@ export default function schedule(id) {
   _impl.maxIndex = function(value) {
     return arguments.length ? (maxIndex = value, _impl) : maxIndex;
   };  
+
+  _impl.tickInterval = function(value) {
+    return arguments.length ? (tickInterval = value, _impl) : tickInterval;
+  }; 
+
+  _impl.timezone = function(value) {
+    return arguments.length ? (timezone = value, _impl) : timezone;
+  };   
+
+  _impl.prefixDurationFormat = function(value) {
+    return arguments.length ? (prefixDurationFormat = value, _impl) : prefixDurationFormat;
+  }; 
+  
       
   return _impl;
 }

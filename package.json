@@ -1,6 +1,10 @@
 {
   "name": "@redsift/d3-rs-schedule",
+<<<<<<< HEAD
   "version": "0.0.4",
+=======
+  "version": "0.2.0",
+>>>>>>> master
   "description": "Generates a calendar like schedule using D3v4.",
   "keywords": [
     "schedule",
@@ -24,22 +28,22 @@
   "scripts": {
     "serve": "gulp -o d3-rs-schedule -g d3-selection serve",
     "build": "gulp -o d3-rs-schedule -g d3-selection build",
-    "pretest": "npm outdated && npm run build",
+    "pretest": "npm outdated || true && npm run build",
     "test": "tape 'test/**/*-test.js' && eslint index.js src",
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "d3-selection": "^1.0.0",
-    "d3-time-format": "^2.0.0",
-    "d3-array": "^1.0.0",
-    "d3-scale": "^1.0.1",
-    "d3-axis": "^1.0.0",
-    "d3-time": "^1.0.0",    
+    "@redsift/d3-rs-intl": "~0.0.2",
     "@redsift/d3-rs-svg": "~0.2.5",
-    "@redsift/d3-rs-tspan-wrap": "~0.1.0",
     "@redsift/d3-rs-theme": "~0.4.1",
-    "@redsift/d3-rs-tip": "~0.3.2",     
-    "@redsift/d3-rs-intl": "~0.0.2"
+    "@redsift/d3-rs-tip": "~0.3.2",
+    "@redsift/d3-rs-tspan-wrap": "~0.1.0",
+    "d3-array": "^1.0.0",
+    "d3-axis": "^1.0.0",
+    "d3-scale": "^1.0.1",
+    "d3-selection": "^1.0.0",
+    "d3-time": "^1.0.0",
+    "timezone": "^1.0.6"
   },
   "devDependencies": {
     "@redsift/tape-reel": "~0.1.0",
@@ -52,8 +56,8 @@
     "gulp-uglify": "^2.0.0",
     "gulp-util": "^3.0.7",
     "rollup": "^0.36.3",
-    "rollup-plugin-node-resolve": "^2.0.0",  
-    "rollup-plugin-commonjs": "^5.0.5",     
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-commonjs": "^5.0.5",
     "rollup-plugin-buble": "^0.14.0",
     "rollup-plugin-json": "^2.0.0",
     "rollup-stream": "^1.11.0",
