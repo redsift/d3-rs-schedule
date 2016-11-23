@@ -5,7 +5,8 @@ import { scaleTime } from 'd3-scale';
 import { axisBottom } from 'd3-axis';
 import { timeFormat, timeFormatDefaultLocale } from 'd3-time-format';
 import { 
-  utcMinute
+  utcMinute,
+  utcHour
 } from 'd3-time';
 
 import { html as svg } from '@redsift/d3-rs-svg';
@@ -24,6 +25,7 @@ const DEFAULT_SIZE = 420;
 const DEFAULT_ASPECT = 160 / 420;
 const DEFAULT_MARGIN = 26;  // white space
 const DEFAULT_INSET = 24;   // scale space
+const DEFAULT_TICKS_HOURS = 7; // show up to 7 hours on the axis
 
 const SYM_START = 's',
       SYM_END = 'e',
@@ -64,6 +66,7 @@ export default function schedule(id) {
       minIndex = undefined,
       maxIndex = undefined,
       indexFormat = undefined,
+      tickInterval = undefined,
       wrapping = true;
 
    
@@ -189,10 +192,21 @@ export default function schedule(id) {
             x = x.nice();
         }
 
+        let _tickInterval = tickInterval;
+        if (_tickInterval == null) {
+          let hours = (extent[1] - extent[0]) / (1000 * 60 * 60);
+          if (hours < DEFAULT_TICKS_HOURS) {
+            _tickInterval = [ utcMinute, 30 ];
+          } else {
+            _tickInterval = [ utcHour, Math.ceil(hours / DEFAULT_TICKS_HOURS)];
+          }
+          console.log(hours, _tickInterval);
+          
+        }
         let xAxis = axisBottom()
             .scale(x)
             .tickFormat(_indexFormat)
-            .ticks(utcMinute, 30)
+            .tickArguments(_tickInterval)
             .tickPadding(4)
             .tickSize(-h, 0);
 
@@ -368,6 +382,11 @@ export default function schedule(id) {
   _impl.maxIndex = function(value) {
     return arguments.length ? (maxIndex = value, _impl) : maxIndex;
   };  
+
+  _impl.tickInterval = function(value) {
+    return arguments.length ? (tickInterval = value, _impl) : tickInterval;
+  }; 
+  
       
   return _impl;
 }

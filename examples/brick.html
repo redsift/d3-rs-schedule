@@ -21,13 +21,12 @@
     <script>
 
     'use strict';
-
-    d3.select('#elm').call(d3_rs_schedule.html('empty'));
-
-
-    d3.select('#elm').call(d3_rs_schedule.html('dark').theme('dark'));
     
     var min10 = 10 * 60 * 1000;
+   /* 
+    d3.select('#elm').call(d3_rs_schedule.html('empty'));
+
+    d3.select('#elm').call(d3_rs_schedule.html('dark').theme('dark'));
     
     let i = 0;
     
@@ -55,7 +54,7 @@
         clearInterval(timer);
       }                             
     }, 1000);
-    
+
     d3.select('#elm').datum([{ s:1469723575941, 
                                e:1469723575941 + (min10 * 4), 
                                t: 'First text', 
@@ -71,7 +70,23 @@
                               }
                               ])
                               .call(d3_rs_schedule.html('basic-dark').indexFormat('%H:%M').theme('dark'));   
-    
+*/
+    d3.select('#elm').datum([{ s:1469723575941, 
+                               e:1469723575941 + (min10 * 4), 
+                               t: 'First text', 
+                               u: 'some' },
+                              { s:1469723575941 + (min10 * 1), 
+                               e:1469723575941 + (min10 * 5), 
+                               t: 'Second text', 
+                               u: 'else' },
+                              { s: 1469758870991,
+                                e:1469758870991 + (min10 * 4),
+                                t: 'Some other long text that will not fit and this should now elllllllls',
+                                u: 'highlight'
+                              }
+                              ])
+                              .call(d3_rs_schedule.html('timezone').indexFormat('%H:%M'));   
+
     </script>
   </body>
 </html>

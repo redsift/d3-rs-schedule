@@ -61,4 +61,6 @@ Property|Description|Transition|Preview
 `classed`|*String* SVG custom class|N
 `width`, `height`, `size`, `scale`|*Integer* SVG container sizes|Y
 `style`|*String* Custom CSS to inject into chart|N
-
+`indexFormat`|*String, Function* Change the time presentation on the axis. If string, utilises [d3-time-format](https://github.com/d3/d3-time-format#locale_format). If a function, must be a comptabile formatter. Default `%Hh`
+`language`|*String* Change the language of affecting time formats.
+`_tickInterval`|*Array* Interval of the ticks, typically an [interval and a specifier](https://github.com/d3/d3-axis#axis_ticks) e.g. `d3.timeMinute.every(15)`
