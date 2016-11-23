@@ -23,7 +23,7 @@
     'use strict';
     
     var min10 = 10 * 60 * 1000;
-   /* 
+
     d3.select('#elm').call(d3_rs_schedule.html('empty'));
 
     d3.select('#elm').call(d3_rs_schedule.html('dark').theme('dark'));
@@ -35,26 +35,26 @@
       let node = d3.select('#elm').datum([{ s:1469723575941, 
                                 e:1469723575941 + (min10 * 4), 
                                 t: 'First text', 
-                                u: 'some' },
+                                },
                                 { s:1469723575941, 
                                 e:1469723575941 + (min10 * 4), 
                                 t: 'Second text', 
-                                u: 'else' },
+                                },
                                 { s: 1469726870991,
                                   e:1469726870991 + (min10 * i),
                                   t: 'Some other long text that will not fit',
-                                  u: 'highlight'
+                                  u: 'proposed'
                                 }
                                 ]);
         if (i > 1) {
           node = node.transition();
         }                        
-        node.call(d3_rs_schedule.html('basic').wrapping(false));   
+        node.call(d3_rs_schedule.html('basic'));   
       if (i>8) {
         clearInterval(timer);
       }                             
     }, 1000);
-*/
+
     d3.select('#elm').datum([{ s:1469723575941, 
                                e:1469723575941 + (min10 * 4), 
                                t: '11am-11:30am Meeting with Jim Bailey' },
