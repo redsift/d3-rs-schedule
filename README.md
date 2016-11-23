@@ -51,8 +51,7 @@
 `s` start timestamp for the event (epoch UTC ms)
 `e` start timestamp for the event (epoch UTC ms)
 `t` text to display
-`u` status text for the event. By default, the only status that is known is 'highlight' and highlights the entry. The value of this string is also used to map against the color of the background used.
-
+`u` status text for the event. This is used by the default fill function to highlight events. The known values are `proposed`, `conflict` and `provisional`.
 
 ### Parameters
 
@@ -63,4 +62,5 @@ Property|Description|Transition|Preview
 `style`|*String* Custom CSS to inject into chart|N
 `indexFormat`|*String, Function* Change the time presentation on the axis. If string, utilises [d3-time-format](https://github.com/d3/d3-time-format#locale_format). If a function, must be a comptabile formatter. Default `%Hh`
 `language`|*String* Change the language of affecting time formats.
-`_tickInterval`|*Array* Interval of the ticks, typically an [interval and a specifier](https://github.com/d3/d3-axis#axis_ticks) e.g. `d3.timeMinute.every(15)`
+`tickInterval`|*Array* Interval of the ticks, typically an [interval and a specifier](https://github.com/d3/d3-axis#axis_ticks) e.g. `d3.timeMinute.every(15)`
+`eventWidth`|*Integer* Width to use for the event rects
