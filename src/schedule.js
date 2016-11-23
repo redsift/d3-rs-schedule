@@ -31,8 +31,8 @@ const DEFAULT_TICKS_HOURS = 7; // show up to 7 hours on the axis
 const STROKE_PX = 3;
 
 const PAL_PAJAMA2 = [
-  '#D3F9E9E2',
-  '#AFEBF0E2'
+  '#D3F9E9',
+  '#AFEBF0'
 ];
 
 const PAL_TEXT = '#5C5C5C';
@@ -40,6 +40,7 @@ const PAL_STRIPE = '#eee';
 
 const DEFAULT_TEXT_INSET = 7;
 const DEFAULT_EVENT_PADDING = -17;
+const TEXT_WIDTH = 7; //TODO; Spacing hardcode for bricks
 
 const SYM_START = 's',
       SYM_END = 'e',
@@ -83,6 +84,7 @@ export default function schedule(id) {
       indexFormat = undefined,
       tickInterval = undefined,
       prefixDurationFormat = null,
+      opacity = 0.85,
       timezone = 'Etc/UTC',
       wrapping = true;
 
@@ -315,12 +317,12 @@ export default function schedule(id) {
               if (Array.isArray(f)) return f[f.length - 1];
               return f;
             })
+            .attr('fill-opacity', d => d[SYM_STATUS] ? null : opacity) // make the entries that have no status slightly transp
             .attr('stroke', _stroke)
             .attr('width', _eventWidth)
             .attr('height', d => y(d[SYM_END]) - y(d[SYM_START]));
 
         let txt = event.select('text')
-            .attr('dominant-baseline', 'text-before-edge')
             .attr('fill', (d, i) => {
               if (d[SYM_STATUS]) {
                 let f = _fill(d, i);
@@ -330,13 +332,12 @@ export default function schedule(id) {
               return PAL_TEXT;
             })
             .attr('x', _text.left)
-            .attr('y', _text.top)
+            .attr('y', _text.top + TEXT_WIDTH * 2)
             .attr('width', _eventWidth - _text.left - _text.right)
             .attr('height', d => Math.max(y(d[SYM_END]) - y(d[SYM_START]) - _text.top - _text.bottom - 14, 12) /*fonts.fixed.sizeForWidth(w) worst case */);
 
         if (wrapping === true) {
-          //TODO; Spacing hardcode for bricks
-          let wrap = tspanWrap().spacing(7).text(d => toText(d));            
+          let wrap = tspanWrap().spacing(TEXT_WIDTH).text(d => toText(d));            
           txt.call(wrap);
         } else {           
           txt.text(d => toText(d));
@@ -462,7 +463,10 @@ export default function schedule(id) {
   _impl.prefixDurationFormat = function(value) {
     return arguments.length ? (prefixDurationFormat = value, _impl) : prefixDurationFormat;
   }; 
-  
+
+  _impl.opacity = function(value) {
+    return arguments.length ? (opacity = value, _impl) : opacity;
+  };   
       
   return _impl;
 }
