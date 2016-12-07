@@ -360,7 +360,7 @@ export default function schedule(id) {
                   ${_impl.self()} .events text { 
                                         font-family: ${fonts.fixed.family};
                                         font-size: ${fonts.fixed.sizeForWidth(_width)};   
-                                        font-weight: ${fonts.fixed.weightMonochrome};               
+                                        font-weight: ${fonts.fixed.weightColor};               
                                       }                                              
                   ${_impl.self()} .axis text { 
                                         font-family: ${fonts.fixed.family};

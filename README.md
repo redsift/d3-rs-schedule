@@ -12,7 +12,7 @@
 
 ### Empty
 
-![Empty](https://bricks.redsift.cloud/reusable/d3-rs-schedule.svg?])
+![Empty](https://bricks.redsift.cloud/reusable/d3-rs-schedule.svg])
 
 
 ### Single Entry
